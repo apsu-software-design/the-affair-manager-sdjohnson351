@@ -56,8 +56,6 @@ function showNewMemberMenu(em:AffairManager) {
   let email:string = readlineSync.question('  Email: ');
 
   em.addMember(name, email);
-
-  console.log('User added!');
 }
 
 /** 
@@ -69,9 +67,11 @@ function showNewAffairMenu(em:AffairManager) {
   let zipcode:string = readlineSync.question('  Location (zip code): ');
   let date:string = readlineSync.question('  Date and time (ex: Jan 21 2017 13:00 PST): ');
 
-  em.addAffair(affairName, zipcode, date);
+  let check = em.addAffair(affairName, zipcode, date);
 
-  showAddToAffairMenu(em, affairName); //add users to new affair
+  if(check === 0){
+    showAddToAffairMenu(em, affairName); //add users to new affair
+  }
 }
 
 /**
@@ -81,12 +81,14 @@ function showNewOrganizationMenu(em:AffairManager) {
   console.log('Add a new organization.');
   let organizationName:string = readlineSync.question('  Title of organization: ');
 
-  em.addOrganization(organizationName);
+  let check = em.addOrganization(organizationName);
 
-  let adding = readlineSync.question('Add affairs to organization? (y/n): ');
-  while(adding.toLowerCase().startsWith('y')){ //while adding members    
-    showAddToOrganizationMenu(em, organizationName); //add affairs to new organization
-    adding = readlineSync.question('Add another affair? (y/n): ');
+  if(check === 0){
+    let adding = readlineSync.question('Add affairs to organization? (y/n): ');
+    while(adding.toLowerCase().startsWith('y')){ //while adding members    
+      showAddToOrganizationMenu(em, organizationName); //add affairs to new organization
+      adding = readlineSync.question('Add another affair? (y/n): ');
+    }
   }
 }
 
@@ -116,7 +118,12 @@ function showAddToAffairMenu(em:AffairManager, affairName?:string) {
  */
 function showSearchMembersMenu(em:AffairManager) : string|undefined {
   let query:string = _promptForQuery('member');
-  return _searchListMenu('member', em.findMemberNames(query));
+  try{
+    return _searchListMenu('member', em.findMemberNames(query));
+  
+  }catch(e){
+    console.log('Error: Member does not exist');
+  }
 }
 
 /**
@@ -124,7 +131,11 @@ function showSearchMembersMenu(em:AffairManager) : string|undefined {
  */
 function showSearchAffairsMenu(em:AffairManager) : string|undefined {
   let query:string = _promptForQuery('affair');
-  return _searchListMenu('affair', em.findAffairNames(query));
+  try{
+    return _searchListMenu('affair', em.findAffairNames(query));
+  }catch(e){
+    console.log('Error: Affair does not exist');
+  }
 }
 
 /**
@@ -132,7 +143,11 @@ function showSearchAffairsMenu(em:AffairManager) : string|undefined {
  */
 function showSearchOrganizationsMenu(em:AffairManager) : string|undefined {
   let query:string = _promptForQuery('organization');
-  return _searchListMenu('organization', em.findOrganizationNames(query));
+  try{
+    return _searchListMenu('organization', em.findOrganizationNames(query));
+  }catch(e){
+    console.log('Error: Organization does not exist');
+  }
 }
 
 /**

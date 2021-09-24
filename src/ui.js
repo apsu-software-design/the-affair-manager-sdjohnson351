@@ -6,7 +6,7 @@ exports.__esModule = true;
 exports.start = void 0;
 var readlineSync = require("readline-sync"); //for easier repeated prompts
 var manager_1 = require("./manager");
-/**js
+/**
  * Function to run the UI
  */
 function start() {
@@ -59,7 +59,6 @@ function showNewMemberMenu(em) {
     var name = readlineSync.question('  Name: ');
     var email = readlineSync.question('  Email: ');
     em.addMember(name, email);
-    console.log('User added!');
 }
 /**
  * Show menu to add a new affair. Will then show menu to add members to the affair
@@ -69,8 +68,10 @@ function showNewAffairMenu(em) {
     var affairName = readlineSync.question('  Title of affair: ');
     var zipcode = readlineSync.question('  Location (zip code): ');
     var date = readlineSync.question('  Date and time (ex: Jan 21 2017 13:00 PST): ');
-    em.addAffair(affairName, zipcode, date);
-    showAddToAffairMenu(em, affairName); //add users to new affair
+    var check = em.addAffair(affairName, zipcode, date);
+    if (check === 0) {
+        showAddToAffairMenu(em, affairName); //add users to new affair
+    }
 }
 /**
  * Show menu to add a new organization. Will then show menu to add affairs to the organization
@@ -78,11 +79,13 @@ function showNewAffairMenu(em) {
 function showNewOrganizationMenu(em) {
     console.log('Add a new organization.');
     var organizationName = readlineSync.question('  Title of organization: ');
-    em.addOrganization(organizationName);
-    var adding = readlineSync.question('Add affairs to organization? (y/n): ');
-    while (adding.toLowerCase().startsWith('y')) { //while adding members    
-        showAddToOrganizationMenu(em, organizationName); //add affairs to new organization
-        adding = readlineSync.question('Add another affair? (y/n): ');
+    var check = em.addOrganization(organizationName);
+    if (check === 0) {
+        var adding = readlineSync.question('Add affairs to organization? (y/n): ');
+        while (adding.toLowerCase().startsWith('y')) { //while adding members    
+            showAddToOrganizationMenu(em, organizationName); //add affairs to new organization
+            adding = readlineSync.question('Add another affair? (y/n): ');
+        }
     }
 }
 /**
@@ -112,21 +115,36 @@ function showAddToAffairMenu(em, affairName) {
  */
 function showSearchMembersMenu(em) {
     var query = _promptForQuery('member');
-    return _searchListMenu('member', em.findMemberNames(query));
+    try {
+        return _searchListMenu('member', em.findMemberNames(query));
+    }
+    catch (e) {
+        console.log('Error: Member does not exist');
+    }
 }
 /**
  * Show menu to look up an affair. Will return undefined if no affair selected.
  */
 function showSearchAffairsMenu(em) {
     var query = _promptForQuery('affair');
-    return _searchListMenu('affair', em.findAffairNames(query));
+    try {
+        return _searchListMenu('affair', em.findAffairNames(query));
+    }
+    catch (e) {
+        console.log('Error: Affair does not exist');
+    }
 }
 /**
  * Show menu to look up a organization. Will return undefined if no organization selected.
  */
 function showSearchOrganizationsMenu(em) {
     var query = _promptForQuery('organization');
-    return _searchListMenu('organization', em.findOrganizationNames(query));
+    try {
+        return _searchListMenu('organization', em.findOrganizationNames(query));
+    }
+    catch (e) {
+        console.log('Error: Organization does not exist');
+    }
 }
 /**
  * Helper function that prompts the user for a query.

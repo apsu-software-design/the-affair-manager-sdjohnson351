@@ -8,13 +8,14 @@
 
 //Class that represents any affair (event) being put on by an organization
 //Affairs have names, locations (zip codes), times, and a list of members putting on the event
+
 class Affair{
     private name: string;
-    private locale: number;
+    private locale: string;
     private time: string;
     private members: Member[];
 
-    constructor(name: string, locale: number, time: string){
+    constructor(name: string, locale: string, time: string){
         this.name = name;
         this.locale = locale;
         this.time = time;
@@ -28,10 +29,10 @@ class Affair{
         this.name = name;
     }
 
-    getLocale(): number {
+    getLocale(): string {
         return this.locale;
     }
-    setLocale(locale: number){
+    setLocale(locale: string){
         this.locale = locale;
     }
 
@@ -51,26 +52,19 @@ class Affair{
             console.log("This member is already part of this affair.");
         } else { this.members.push(member); }
     }
-
-    removeMember(member: Member){
-        if(checkDoubles(member.getName(), this.members)){
-            let index = this.members.indexOf(member);
-            delete this.members[index];
-        }else{
-            console.log("This member is not part of this affair.");
-        }
-    }
 }
 
 //Class that represents any individual member within the system
-//Each Member has a name and email address
+//Each Member has a name and email address and a value that dictates if it is part of an affair
 class Member {
     private name: string;
     private email: string;
+    private isInAffair: boolean;
 
-    constructor(name: string, email: string){
+    constructor(name?: string, email?: string){
         this.name = name;
         this.email = email;
+        this.isInAffair = false;
     }
 
     getName(): string {
@@ -79,6 +73,15 @@ class Member {
 
     getEmail(): string{
         return this.email;
+    }
+
+    getIsInAffair(): boolean{
+        return this.isInAffair;
+    }
+
+    swapAffair(){
+        if(this.isInAffair){ this.isInAffair = false;}
+        else { this.isInAffair = true;}
     }
     
 }
@@ -96,6 +99,7 @@ class Org {
 
     addAffair(affair: Affair){
         this.affairs.push(affair);
+        
     }
 
     getName(): string {
@@ -106,9 +110,9 @@ class Org {
 //Affair Manager class that is used to implement all the major functions of the program
 //Has arrays of Member, Affair, and Org type
 class AffairManager {
-    private members: Member[]; // = new Array();
-    private affairs: Affair[]; // = new Array();
-    private orgs: Org[]; // = new Array();
+    private members: Member[];
+    private affairs: Affair[];
+    private orgs: Org[];
 
     constructor(){
         this.members = [];
@@ -117,50 +121,68 @@ class AffairManager {
     }
 
     addMember(memName: string, email: string){
+        let validEmail: boolean = true;
+
+        if(email === "" || email.indexOf("@") === -1 || email.indexOf(" ") >= 0){ validEmail = false;}
         if(checkDoubles(memName, this.members)){
             console.log("This member is already part of the Affair Manager.");
-        }else { this.members.push(new Member(memName, email)); }
+        }else if(memName === "" || validEmail === false){ console.log("Invalid input: Empty parameter or invalid email.");}
+        else { this.members.push(new Member(memName, email)); console.log('User added!'); }
     }
 
-    addAffair(affairName: string, locale: number, date: string){
+    addAffair(affairName: string, locale: string, date: string): number{
         if(checkDoubles(affairName, this.affairs)){
             console.log("This affair is already part of the Affair Manager.");
-        }else { this.affairs.push(new Affair(affairName, locale, date)); }   
+            return -1;
+        }else if(affairName === "" || locale === "" || date === ""){console.log("Invalid input."); return -1;}
+        else { this.affairs.push(new Affair(affairName, locale, date)); return 0;}   
     }
 
-    addOrganization(orgName: string){
+    addOrganization(orgName: string): number{
         if(checkDoubles(orgName, this.orgs)){
             console.log("This organization is already part of the Affair Manager.");
-        }else { this.orgs.push(new Org(orgName)); }   
+            return -1;
+        }else if(orgName === ""){ console.log("Invalid input."); return -1;}
+        else { this.orgs.push(new Org(orgName)); return 0;}   
     }
 
     addMemberToAffair(memName: string, affairName: string){
-        if(checkDoubles(memName, this.members) && checkDoubles(affairName, this.affairs)){
-            findElement(affairName, this.affairs).addMember(findElement(memName, this.members));
+        let member: Member = findElement(memName, this.members);
+        if(checkDoubles(memName, this.members) && checkDoubles(affairName, this.affairs) && member.getIsInAffair() === false){
+            findElement(affairName, this.affairs).addMember(member);
+            member.swapAffair();
+        }else if(member.getIsInAffair()){ 
+            console.log("This member, " + memName + ", is already part of an affair."); 
         }else{ 
             console.log("This member or affair does not yet exist in the Affair Manager.");
         }
     }
 
-    findMemberNames(memName: string): string | undefined{
+    findMemberNames(memName: string): string[] | undefined{
         if(checkDoubles(memName, this.members)){
-            return findElement(memName, this.members).getName();
+            let memNames: string[] = [];
+            memNames[0] = memName;
+            return memNames;
         } else{
             return undefined;
         }
     }
 
-    findAffairNames(affairName: string): string | undefined{
+    findAffairNames(affairName: string): string[] | undefined{
         if(checkDoubles(affairName, this.affairs)){
-            return findElement(affairName, this.affairs).getName();
+            let affairNames: string[] = [];
+            affairNames[0] = affairName;
+            return affairNames;
         } else{
             return undefined;
         }
     }
 
-    findOrganizationNames(orgName: string): string | undefined{
+    findOrganizationNames(orgName: string): string[] | undefined{
         if(checkDoubles(orgName, this.orgs)){
-            return findElement(orgName, this.orgs).getName();
+            let orgNames: string[] = [];
+            orgNames[0] = orgName;
+            return orgNames;
         } else{
             return undefined;
         }
@@ -184,6 +206,7 @@ class AffairManager {
 
     addAffairToOrganization(affairName: string, orgName: string){
         if(checkDoubles(orgName, this.orgs) && checkDoubles(affairName, this.affairs)){
+            
             findElement(orgName, this.orgs).addAffair(findElement(affairName, this.affairs));
         }else{ 
             console.log("This organization or affair does not yet exist in the Affair Manager.");
@@ -191,36 +214,42 @@ class AffairManager {
     }
 
     getMembers(affairName: string): string[]{
-        let mems: string[];
+        let mems: string[] = [];
         if(checkDoubles(affairName, this.affairs)){
             findElement(affairName, this.affairs).getMembers().forEach(element => {
-                mems.push(element);
+                mems.push(element.getName());
             });
         } else{
-            console.log("This affair does not yet exist in the Affair Manager and thus has zero members.");
             mems[0] = "no members";
         }
         return mems;
     }
 }
 
-//Takes a string and any value (intended to be an array of one of the classes I have defined) 
+//Takes a string and any array (intended to be an array of one of the classes I have defined) 
 //and determines if there is an element in that array that has that string as its name value
 //Returns a bool
-function checkDoubles(name: string, arr): boolean{
+function checkDoubles(name: string, arr: any[]): boolean{
     let isDouble: boolean = false;
     arr.forEach(element => {
         if(name === element.getName()){
             isDouble = true;
         }
     });
-    
     return isDouble;
 }
 
-//Takes a string and any value (intended to be an array of one of the classes I have defined) 
+//Takes a string and any array (intended to be an array of one of the classes I have defined) 
 //and returns the element within the array that has that string as a name
 //Only used after it has been determined that an item with that name is in the array
-function findElement(name: string, arr): any {
-    return arr[arr.indexOf[name]];
+function findElement(name: string, arr: any[]): any {
+    let elm;
+    arr.forEach(element => {
+        if(name === element.getName()){
+            elm = element;
+        }
+    })
+    return arr[arr.indexOf(elm, 0)];
 }
+
+export { AffairManager };
