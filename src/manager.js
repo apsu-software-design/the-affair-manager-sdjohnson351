@@ -85,6 +85,9 @@ var Org = /** @class */ (function () {
     Org.prototype.addAffair = function (affair) {
         this.affairs.push(affair);
     };
+    Org.prototype.getAffairs = function () {
+        return this.affairs;
+    };
     Org.prototype.getName = function () {
         return this.name;
     };
@@ -205,7 +208,13 @@ var AffairManager = /** @class */ (function () {
     };
     AffairManager.prototype.addAffairToOrganization = function (affairName, orgName) {
         if (checkDoubles(orgName, this.orgs) && checkDoubles(affairName, this.affairs)) {
-            findElement(orgName, this.orgs).addAffair(findElement(affairName, this.affairs));
+            var org = findElement(orgName, this.orgs);
+            if (checkDoubles(affairName, org.getAffairs())) {
+                console.log("This affair is already part of this organization.");
+            }
+            else {
+                org.addAffair(findElement(affairName, this.affairs));
+            }
         }
         else {
             console.log("This organization or affair does not yet exist in the Affair Manager.");

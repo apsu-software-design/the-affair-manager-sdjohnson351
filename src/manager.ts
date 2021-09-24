@@ -99,7 +99,10 @@ class Org {
 
     addAffair(affair: Affair){
         this.affairs.push(affair);
-        
+    }
+
+    getAffairs(): Affair[]{
+        return this.affairs;
     }
 
     getName(): string {
@@ -206,11 +209,11 @@ class AffairManager {
 
     addAffairToOrganization(affairName: string, orgName: string){
         if(checkDoubles(orgName, this.orgs) && checkDoubles(affairName, this.affairs)){
-            
-            findElement(orgName, this.orgs).addAffair(findElement(affairName, this.affairs));
-        }else{ 
-            console.log("This organization or affair does not yet exist in the Affair Manager.");
-        }
+            let org: Org = findElement(orgName, this.orgs);
+            if(checkDoubles(affairName, org.getAffairs())){
+                console.log("This affair is already part of this organization.")
+            }else{ org.addAffair(findElement(affairName, this.affairs)); }
+        }else{ console.log("This organization or affair does not yet exist in the Affair Manager."); }
     }
 
     getMembers(affairName: string): string[]{
